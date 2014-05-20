@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
@@ -32,10 +29,7 @@ namespace Commerce.Controllers
             var query = from c in db.Comments
                         where c.Id == item.Id
                         select new { Comment = c, AuthorName = c.Author.UserName };
-            foreach (var e in await query.ToListAsync())
-            {
-                e.Comment.AuthorName = e.AuthorName;
-            }
+            await query.ForEachAsync(e => e.Comment.AuthorName = e.AuthorName);
             if (item == null)
             {
                 return NotFound();
