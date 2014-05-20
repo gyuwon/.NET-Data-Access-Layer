@@ -22,7 +22,7 @@ namespace Commerce.Models
     {
         public long Id { get; set; }
         public long ItemId { get; set; }
-        [Required]
+        [Required, JsonIgnore]
         public string AuthorId { get; set; }
         [Required]
         public string Content { get; set; }
@@ -32,6 +32,8 @@ namespace Commerce.Models
         public Item Item { get; set; }
         [JsonIgnore]
         public ApplicationUser Author { get; set; }
+        [NotMapped]
+        public string AuthorName { get; set; }
     }
 
     public class CommentBindingModel
