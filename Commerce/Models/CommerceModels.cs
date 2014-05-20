@@ -34,4 +34,10 @@ namespace Commerce.Models
         [JsonIgnore]
         public ApplicationUser Author { get; set; }
     }
+
+    public class CommentBindingModel
+    {
+        [Required]
+        public string Content { get; set; }
+    }
 }
