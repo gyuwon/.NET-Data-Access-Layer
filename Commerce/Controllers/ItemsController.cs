@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using Commerce.Models;
+using Microsoft.AspNet.Identity;
 
 namespace Commerce.Controllers
 {
@@ -100,6 +101,35 @@ namespace Commerce.Controllers
             await db.SaveChangesAsync();
 
             return Ok(item);
+        }
+
+        [Authorize]
+        [Route("api/Items/{id}/Comments")]
+        [ResponseType(typeof(Comment))]
+        public async Task<IHttpActionResult> PostComment(long id, CommentBindingModel comment)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            Item item = await db.Items.FindAsync(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+
+            Comment entity = new Comment
+            {
+                ItemId = item.Id,
+                AuthorId = User.Identity.GetUserId(),
+                Content = comment.Content,
+                CreatedAt = DateTime.Now
+            };
+            db.Comments.Add(entity);
+            await db.SaveChangesAsync();
+
+            return Ok(entity);
         }
 
         protected override void Dispose(bool disposing)
