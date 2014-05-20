@@ -13,7 +13,7 @@ namespace Commerce.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201405201512149_CommerceModels"; }
+            get { return "201405201525516_CommerceModels"; }
         }
         
         string IMigrationMetadata.Source

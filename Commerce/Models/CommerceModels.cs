@@ -26,7 +26,6 @@ namespace Commerce.Models
         public string AuthorId { get; set; }
         [Required]
         public string Content { get; set; }
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime CreatedAt { get; set; }
 
         [JsonIgnore]
