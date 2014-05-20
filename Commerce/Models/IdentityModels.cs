@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Data.Entity;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
@@ -23,11 +24,17 @@ namespace Commerce.Models
         public ApplicationDbContext()
             : base("DefaultConnection", throwIfV1Schema: false)
         {
+#if DEBUG
+            this.Database.Log += m => System.Diagnostics.Debug.WriteLine(m);
+#endif
         }
         
         public static ApplicationDbContext Create()
         {
             return new ApplicationDbContext();
         }
+
+        public DbSet<Item> Items { get; set; }
+        public DbSet<Comment> Comments { get; set; }
     }
 }
