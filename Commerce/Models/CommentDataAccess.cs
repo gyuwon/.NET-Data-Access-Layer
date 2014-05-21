@@ -1,12 +1,16 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 namespace Commerce.Models
 {
-    public class CommentDataAccess : IDisposable
+    public class CommentDataAccess
     {
         private ApplicationDbContext _db = new ApplicationDbContext();
+
+        public CommentDataAccess(ApplicationDbContext db)
+        {
+            this._db = db;
+        }
 
         public IQueryable<Comment> Query
         {
@@ -21,11 +25,6 @@ namespace Commerce.Models
             this._db.Comments.Add(comment);
             await this._db.SaveChangesAsync();
             return comment;
-        }
-
-        public void Dispose()
-        {
-            this._db.Dispose();
         }
     }
 }

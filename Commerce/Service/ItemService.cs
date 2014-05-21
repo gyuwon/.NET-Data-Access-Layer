@@ -9,8 +9,16 @@ namespace Commerce.Service
 {
     public class ItemService : IDisposable
     {
-        private ItemDataAccess _items = new ItemDataAccess();
-        private CommentDataAccess _comments = new CommentDataAccess();
+        private ApplicationDbContext _db;
+        private ItemDataAccess _items;
+        private CommentDataAccess _comments;
+
+        public ItemService()
+        {
+            this._db = new ApplicationDbContext();
+            this._items = new ItemDataAccess(this._db);
+            this._comments = new CommentDataAccess(this._db);
+        }
 
         public async Task<IEnumerable<Item>> GetItemsAsync()
         {
@@ -66,8 +74,7 @@ namespace Commerce.Service
 
         public void Dispose()
         {
-            this._items.Dispose();
-            this._comments.Dispose();
+            this._db.Dispose();
         }
     }
 }
