@@ -26,14 +26,15 @@ namespace Commerce.Controllers
         public async Task<IHttpActionResult> GetItem(long id)
         {
             Item item = await db.Items.FindAsync(id);
-            var query = from c in db.Comments
-                        where c.Id == item.Id
-                        select new { Comment = c, AuthorName = c.Author.UserName };
-            await query.ForEachAsync(e => e.Comment.AuthorName = e.AuthorName);
             if (item == null)
             {
                 return NotFound();
             }
+            var query = from c in db.Comments
+                        where c.Id == item.Id
+                        orderby c.CreatedAt
+                        select new { Comment = c, AuthorName = c.Author.UserName };
+            await query.ForEachAsync(e => e.Comment.AuthorName = e.AuthorName);
 
             return Ok(item);
         }
