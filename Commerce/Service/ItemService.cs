@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading.Tasks;
 using Commerce.Models;
@@ -10,21 +9,22 @@ namespace Commerce.Service
 {
     public class ItemService : IDisposable
     {
-        private ApplicationDbContext _db = new ApplicationDbContext();
+        private ItemDataAccess _items = new ItemDataAccess();
+        private CommentDataAccess _comments = new CommentDataAccess();
 
         public async Task<IEnumerable<Item>> GetItemsAsync()
         {
-            return await this._db.Items.ToListAsync();
+            return await this._items.Query.ToListAsync();
         }
 
         public async Task<Item> GetItemAsync(long id)
         {
-            Item item = await this._db.Items.FindAsync(id);
+            Item item = await this._items.FindAsync(id);
             if (item == null)
             {
                 return null;
             }
-            var query = from c in this._db.Comments
+            var query = from c in this._comments.Query
                         where c.ItemId == item.Id
                         orderby c.CreatedAt
                         select new { Comment = c, AuthorName = c.Author.UserName };
@@ -32,49 +32,24 @@ namespace Commerce.Service
             return item;
         }
 
-        public async Task<Item> CreateItemAsync(Item item)
+        public Task<Item> CreateItemAsync(Item item)
         {
-            this._db.Items.Add(item);
-            await this._db.SaveChangesAsync();
-            return item;
+            return this._items.CreateAsync(item);
         }
 
-        public async Task<Item> UpdateItemAsync(Item item)
+        public Task<Item> UpdateItemAsync(Item item)
         {
-            this._db.Entry(item).State = EntityState.Modified;
-            try
-            {
-                await this._db.SaveChangesAsync();
-                return item;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (null == this._db.Items.Find(item.Id))
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            return this._items.UpdateAsync(item);
         }
 
-        public async Task<Item> DeleteItemAsync(long id)
+        public Task<Item> DeleteItemAsync(long id)
         {
-            Item item = await this._db.Items.FindAsync(id);
-            if (item == null)
-            {
-                return null;
-            }
-            this._db.Items.Remove(item);
-            await this._db.SaveChangesAsync();
-            return item;
+            return this._items.DeleteAsync(id);
         }
 
         public async Task<Comment> CreateCommentAsync(string authorId, long itemId, string content)
         {
-            Item item = await this._db.Items.FindAsync(itemId);
+            Item item = await this._items.FindAsync(itemId);
             if (item == null)
             {
                 return null;
@@ -86,14 +61,13 @@ namespace Commerce.Service
                 Content = content,
                 CreatedAt = DateTime.Now
             };
-            this._db.Comments.Add(comment);
-            await this._db.SaveChangesAsync();
-            return comment;
+            return await this._comments.CreateAsync(comment);
         }
 
         public void Dispose()
         {
-            this._db.Dispose();
+            this._items.Dispose();
+            this._comments.Dispose();
         }
     }
 }
