@@ -40,6 +40,7 @@ namespace Commerce.Controllers
         }
 
         // PUT: api/Items/5
+        [Authorize(Roles = "Administrator")]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> PutItem(long id, Item item)
         {
@@ -75,6 +76,7 @@ namespace Commerce.Controllers
         }
 
         // POST: api/Items
+        [Authorize(Roles = "Administrator")]
         [ResponseType(typeof(Item))]
         public async Task<IHttpActionResult> PostItem(Item item)
         {
@@ -90,6 +92,7 @@ namespace Commerce.Controllers
         }
 
         // DELETE: api/Items/5
+        [Authorize(Roles = "Administrator")]
         [ResponseType(typeof(Item))]
         public async Task<IHttpActionResult> DeleteItem(long id)
         {
