@@ -33,6 +33,11 @@ namespace Commerce.Controllers
             {
                 return NotFound();
             }
+            var query = from c in db.Comments
+                        where c.ItemId == item.Id
+                        orderby c.CreatedAt
+                        select new { Comment = c, AuthorName = c.Author.UserName };
+            await query.ForEachAsync(e => e.Comment.AuthorName = e.AuthorName);
 
             return Ok(item);
         }
