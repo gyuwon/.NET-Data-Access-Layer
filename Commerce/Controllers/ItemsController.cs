@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using Commerce.Models;
-using Commerce.Service;
+using Commerce.Services;
 using Microsoft.AspNet.Identity;
 
 namespace Commerce.Controllers

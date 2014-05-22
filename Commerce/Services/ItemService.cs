@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Commerce.Models;
 
-namespace Commerce.Service
+namespace Commerce.Services
 {
     public class ItemService : IDisposable
     {
