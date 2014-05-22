@@ -257,5 +257,17 @@ namespace Commerce.Tests.Services
             result.Content.Should().Be(content);
             (result.CreatedAt - now).TotalMilliseconds.Should().BeInRange(0, 10);
         }
+
+        [TestMethod]
+        public void Dispose_Should_CallUnitOfWorkDispose()
+        {
+            // Arrange
+
+            // Act
+            this._service.Dispose();
+
+            // Assert
+            this._unitOfWork.Verify(u => u.Dispose(), Times.Once());
+        }
     }
 }

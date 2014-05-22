@@ -8,7 +8,7 @@ using Commerce.Models;
 
 namespace Commerce.Services
 {
-    public class ItemService
+    public class ItemService : IDisposable
     {
         private IUnitOfWork _unitOfWork;
         private IRepository<Item> _items;
@@ -89,6 +89,11 @@ namespace Commerce.Services
             this._comments.Create(comment);
             await this._unitOfWork.SaveChangesAsync();
             return comment;
+        }
+
+        public void Dispose()
+        {
+            this._unitOfWork.Dispose();
         }
     }
 }
