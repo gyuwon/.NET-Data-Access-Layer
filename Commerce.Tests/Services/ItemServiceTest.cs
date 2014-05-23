@@ -38,6 +38,21 @@ namespace Commerce.Tests.Services
         }
 
         [TestMethod]
+        public async Task GetItemsAsync_Should_ReturnAllItems()
+        {
+            // Arrange
+            var items = Enumerable.Range(0, 100).Select(_ => new Item()).ToList();
+            var dbSet = new MockDbSet<Item>().SetupSeedData(items).SetupLinq();
+            this._items.SetupGet(r => r.Query).Returns(dbSet.Object);
+
+            // Act
+            var result = (await this._service.GetItemsAsync()).ToList();
+
+            // Assert
+            result.Should().BeEquivalentTo(items);
+        }
+
+        [TestMethod]
         public async Task GetItemAsync_Should_ReturnFindAsync()
         {
             // Arrange
@@ -110,7 +125,6 @@ namespace Commerce.Tests.Services
         {
             // Arrange
             var item = new Item { Id = this._itemId };
-            this._items.Setup(r => r.Create(item)).Returns(item);
 
             // Act
             Item result = await this._service.CreateItemAsync(item);
@@ -128,7 +142,6 @@ namespace Commerce.Tests.Services
             var item = new Item { Id = this._itemId };
             var dbSet = new MockDbSet<Item>().SetupSeedData(new[] { item }).SetupLinq();
             this._items.SetupGet(r => r.Query).Returns(dbSet.Object);
-            this._items.Setup(r => r.Update(item)).Returns(item);
             this._unitOfWork.Setup(r => r.SaveChangesAsync()).Returns(Task.FromResult(1));
 
             // Act
@@ -147,7 +160,6 @@ namespace Commerce.Tests.Services
             var item = new Item { Id = this._itemId };
             var dbSet = new MockDbSet<Item>().SetupSeedData(Enumerable.Empty<Item>()).SetupLinq();
             this._items.SetupGet(r => r.Query).Returns(dbSet.Object);
-            this._items.Setup(r => r.Update(item)).Returns(() => null);
             this._unitOfWork.Setup(r => r.SaveChangesAsync()).Returns(Task.FromResult(1));
 
             // Act
@@ -160,28 +172,27 @@ namespace Commerce.Tests.Services
         }
 
         [TestMethod]
-        public async Task RemoveItemAsync_Should_CallFindAsync()
+        public async Task DeleteItemAsync_Should_CallFindAsync()
         {
             // Arrange
 
             // Act
-            Item result = await this._service.RemoveItemAsync(this._itemId);
+            Item result = await this._service.DeleteItemAsync(this._itemId);
 
             // Assert
             this._items.Verify(r => r.FindAsync(this._itemId), Times.Once());
         }
 
         [TestMethod]
-        public async Task RemoveItemAsync_Should_CallRemoveSaveChangesAsyncIfExists()
+        public async Task DeleteItemAsync_Should_CallRemoveSaveChangesAsyncIfExists()
         {
             // Arrange
             var item = new Item { Id = this._itemId };
             this._items.Setup(r => r.FindAsync(this._itemId)).ReturnsAsync(item);
-            this._items.Setup(r => r.Update(item)).Returns(item);
             this._unitOfWork.Setup(r => r.SaveChangesAsync()).Returns(Task.FromResult(1));
 
             // Act
-            Item result = await this._service.RemoveItemAsync(this._itemId);
+            Item result = await this._service.DeleteItemAsync(this._itemId);
 
             // Assert
             this._items.Verify(r => r.Remove(item), Times.Once());
@@ -189,13 +200,13 @@ namespace Commerce.Tests.Services
         }
 
         [TestMethod]
-        public async Task RemoveItemAsync_Should_ReturnNullIfNotExists()
+        public async Task DeleteItemAsync_Should_ReturnNullIfNotExists()
         {
             // Arrange
             this._items.Setup(r => r.FindAsync(this._itemId)).ReturnsAsync(null);
 
             // Act
-            Item result = await this._service.RemoveItemAsync(this._itemId);
+            Item result = await this._service.DeleteItemAsync(this._itemId);
 
             // Assert
             result.Should().BeNull();

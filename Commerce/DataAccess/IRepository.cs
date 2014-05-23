@@ -7,9 +7,9 @@ namespace Commerce.DataAccess
         where TEntity : class
     {
         Task<TEntity> FindAsync(params object[] keyValues);
-        IQueryable<TEntity> Query { get; set; }
-        TEntity Create(TEntity entity);
-        TEntity Update(TEntity entity);
-        TEntity Remove(TEntity entity);
+        IQueryable<TEntity> Query { get; }
+        void Create(TEntity entity);
+        void Update(TEntity entity);
+        void Remove(TEntity entity);
     }
 }

@@ -14,11 +14,21 @@ namespace Commerce.Services
         private IRepository<Item> _items;
         private IRepository<Comment> _comments;
 
+        public ItemService()
+            : this(new DbContextUnitOfWork<ApplicationDbContext>())
+        {
+        }
+
         public ItemService(IUnitOfWork unitOfWork)
         {
             this._unitOfWork = unitOfWork;
             this._items = unitOfWork.GetRepository<Item>();
             this._comments = unitOfWork.GetRepository<Comment>();
+        }
+
+        public async Task<IEnumerable<Item>> GetItemsAsync()
+        {
+            return await this._items.Query.ToListAsync();
         }
 
         public async Task<Item> GetItemAsync(long id)
@@ -61,7 +71,7 @@ namespace Commerce.Services
             return item;
         }
 
-        public async Task<Item> RemoveItemAsync(long id)
+        public async Task<Item> DeleteItemAsync(long id)
         {
             Item item = await this._items.FindAsync(id);
             if (item == null)
