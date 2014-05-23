@@ -52,10 +52,11 @@ namespace Commerce.Services
 
         public async Task<Item> UpdateItemAsync(Item item)
         {
-            if (null == this._items.Update(item))
+            if (false == await this._items.Query.AnyAsync(e => e.Id == item.Id))
             {
                 return null;
             }
+            this._items.Update(item);
             await this._unitOfWork.SaveChangesAsync();
             return item;
         }
@@ -74,8 +75,7 @@ namespace Commerce.Services
 
         public async Task<Comment> CreateCommentAsync(long itemId, string authorId, string content)
         {
-            Item item = await this._items.FindAsync(itemId);
-            if (item == null)
+            if (false == await this._items.Query.AnyAsync(e => e.Id == itemId))
             {
                 return null;
             }

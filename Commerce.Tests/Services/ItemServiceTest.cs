@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Data.Entity;
 using System.Threading.Tasks;
 using Commerce.DataAccess;
 using Commerce.Models;
@@ -125,6 +126,8 @@ namespace Commerce.Tests.Services
         {
             // Arrange
             var item = new Item { Id = this._itemId };
+            var dbSet = new MockDbSet<Item>().SetupSeedData(new[] { item }).SetupLinq();
+            this._items.SetupGet(r => r.Query).Returns(dbSet.Object);
             this._items.Setup(r => r.Update(item)).Returns(item);
             this._unitOfWork.Setup(r => r.SaveChangesAsync()).Returns(Task.FromResult(1));
 
@@ -138,10 +141,12 @@ namespace Commerce.Tests.Services
         }
 
         [TestMethod]
-        public async Task UpdateItemAsync_Should_CallUpdateIfNotExists()
+        public async Task UpdateItemAsync_Should_ReturnNullIfNotExists()
         {
             // Arrange
             var item = new Item { Id = this._itemId };
+            var dbSet = new MockDbSet<Item>().SetupSeedData(Enumerable.Empty<Item>()).SetupLinq();
+            this._items.SetupGet(r => r.Query).Returns(dbSet.Object);
             this._items.Setup(r => r.Update(item)).Returns(() => null);
             this._unitOfWork.Setup(r => r.SaveChangesAsync()).Returns(Task.FromResult(1));
 
@@ -150,7 +155,7 @@ namespace Commerce.Tests.Services
 
             // Assert
             result.Should().BeNull();
-            this._items.Verify(r => r.Update(item), Times.Once());
+            this._items.Verify(r => r.Update(item), Times.Never());
             this._unitOfWork.Verify(r => r.SaveChangesAsync(), Times.Never());
         }
 
@@ -198,21 +203,11 @@ namespace Commerce.Tests.Services
         }
 
         [TestMethod]
-        public async Task CreateCommentAsync_Should_CallFindAsync()
-        {
-            // Arrange
-
-            // Act
-            Comment result = await this._service.CreateCommentAsync(this._itemId, this._userId, "D'oh!");
-
-            // Assert
-            this._items.Verify(r => r.FindAsync(this._itemId), Times.Once());
-        }
-
-        [TestMethod]
         public async Task CreateCommentAsync_Should_ReturnNullIfNotExists()
         {
             // Arrange
+            var dbSet = new MockDbSet<Item>().SetupSeedData(Enumerable.Empty<Item>()).SetupLinq();
+            this._items.SetupGet(r => r.Query).Returns(dbSet.Object);
             this._items.Setup(r => r.FindAsync(this._itemId)).ReturnsAsync(null);
 
             // Act
@@ -228,7 +223,8 @@ namespace Commerce.Tests.Services
         {
             // Arrange
             var item = new Item { Id = this._itemId };
-            this._items.Setup(r => r.FindAsync(this._itemId)).ReturnsAsync(item);
+            var dbSet = new MockDbSet<Item>().SetupSeedData(new[] { item }).SetupLinq();
+            this._items.SetupGet(r => r.Query).Returns(dbSet.Object);
 
             // Act
             Comment result = await this._service.CreateCommentAsync(this._itemId, this._userId, "D'oh!");
@@ -243,7 +239,8 @@ namespace Commerce.Tests.Services
         {
             // Arrange
             var item = new Item { Id = this._itemId };
-            this._items.Setup(r => r.FindAsync(this._itemId)).ReturnsAsync(item);
+            var dbSet = new MockDbSet<Item>().SetupSeedData(new[] { item }).SetupLinq();
+            this._items.SetupGet(r => r.Query).Returns(dbSet.Object);
             var content = "D'oh!";
             var now = DateTime.Now;
 
