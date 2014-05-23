@@ -1,45 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using Commerce.Models;
+using Commerce.Services;
 using Microsoft.AspNet.Identity;
 
 namespace Commerce.Controllers
 {
     public class ItemsController : ApiController
     {
-        private ApplicationDbContext db = new ApplicationDbContext();
+        private ItemService _service = new ItemService();
 
         // GET: api/Items
-        public IQueryable<Item> GetItems()
+        public Task<IEnumerable<Item>> GetItems()
         {
-            return db.Items;
+            return this._service.GetItemsAsync();
         }
 
         // GET: api/Items/5
         [ResponseType(typeof(Item))]
         public async Task<IHttpActionResult> GetItem(long id)
         {
-            Item item = await db.Items.FindAsync(id);
-            if (item == null)
-            {
-                return NotFound();
-            }
-            var query = from c in db.Comments
-                        where c.ItemId == item.Id
-                        orderby c.CreatedAt
-                        select new { Comment = c, AuthorName = c.Author.UserName };
-            await query.ForEachAsync(e => e.Comment.AuthorName = e.AuthorName);
+            Item entity = await this._service.GetItemAsync(id);
 
-            return Ok(item);
+            return Ok(entity);
         }
 
         // PUT: api/Items/5
@@ -57,22 +43,9 @@ namespace Commerce.Controllers
                 return BadRequest();
             }
 
-            db.Entry(item).State = EntityState.Modified;
-
-            try
+            if (null == await this._service.UpdateItemAsync(item))
             {
-                await db.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ItemExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound();
             }
 
             return StatusCode(HttpStatusCode.NoContent);
@@ -88,10 +61,9 @@ namespace Commerce.Controllers
                 return BadRequest(ModelState);
             }
 
-            db.Items.Add(item);
-            await db.SaveChangesAsync();
+            Item entity = await this._service.CreateItemAsync(item);
 
-            return CreatedAtRoute("DefaultApi", new { id = item.Id }, item);
+            return CreatedAtRoute("DefaultApi", new { id = entity.Id }, entity);
         }
 
         // DELETE: api/Items/5
@@ -99,16 +71,13 @@ namespace Commerce.Controllers
         [ResponseType(typeof(Item))]
         public async Task<IHttpActionResult> DeleteItem(long id)
         {
-            Item item = await db.Items.FindAsync(id);
-            if (item == null)
+            Item entity = await this._service.DeleteItemAsync(id);
+            if (entity == null)
             {
                 return NotFound();
             }
 
-            db.Items.Remove(item);
-            await db.SaveChangesAsync();
-
-            return Ok(item);
+            return Ok(entity);
         }
 
         [Authorize]
@@ -121,21 +90,11 @@ namespace Commerce.Controllers
                 return BadRequest(ModelState);
             }
 
-            Item item = await db.Items.FindAsync(id);
-            if (item == null)
+            Comment entity = await this._service.CreateCommentAsync(id, User.Identity.GetUserId(), comment.Content);
+            if (entity == null)
             {
                 return NotFound();
             }
-
-            Comment entity = new Comment
-            {
-                ItemId = item.Id,
-                AuthorId = User.Identity.GetUserId(),
-                Content = comment.Content,
-                CreatedAt = DateTime.Now
-            };
-            db.Comments.Add(entity);
-            await db.SaveChangesAsync();
 
             return Ok(entity);
         }
@@ -144,14 +103,9 @@ namespace Commerce.Controllers
         {
             if (disposing)
             {
-                db.Dispose();
+                this._service.Dispose();
             }
             base.Dispose(disposing);
-        }
-
-        private bool ItemExists(long id)
-        {
-            return db.Items.Count(e => e.Id == id) > 0;
         }
     }
 }
